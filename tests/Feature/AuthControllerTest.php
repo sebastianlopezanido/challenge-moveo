@@ -16,7 +16,7 @@ class AuthControllerTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        Role::create(['name' => 'User']);
+        Role::create(['name' => 'user']);
     }
 
     #[Test]
@@ -29,11 +29,19 @@ class AuthControllerTest extends TestCase
             'password_confirmation' => 'password',
         ]);
 
-        $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'access_token',
-                     'token_type',
-                 ]);
+        $response->assertStatus(201)
+        ->assertJsonStructure([
+            'status',
+            'data' => [
+                'access_token',
+                'token_type',
+            ],
+            'message',
+        ])
+        ->assertJson([
+            'status' => 'success',
+            'message' => 'User registered successfully',
+        ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'mariobros@example.com',
@@ -55,10 +63,18 @@ class AuthControllerTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'access_token',
-                     'token_type',
-                 ]);
+        ->assertJsonStructure([
+            'status',
+            'data' => [
+                'access_token',
+                'token_type',
+            ],
+            'message',
+        ])
+        ->assertJson([
+            'status' => 'success',
+            'message' => 'Login successful',
+        ]);
     }
 
     #[Test]
@@ -78,6 +94,7 @@ class AuthControllerTest extends TestCase
 
         $response->assertStatus(200)
                  ->assertJson([
+                     'status' => 'success',
                      'message' => 'Logged out successfully',
                  ]);
     }
@@ -97,21 +114,29 @@ class AuthControllerTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'access_token',
-                     'token_type',
-                 ]);
+        ->assertJsonStructure([
+            'status',
+            'data' => [
+                'access_token',
+                'token_type',
+            ],
+            'message',
+        ]);
 
         //fronted
 
-        $token = $response->json('access_token');
+        $token = $response->json('data.access_token');
 
         $response2 = $this->withHeader('Authorization',"Bearer {$token}")->get('/api/user');
 
-        $response2->assertStatus(200);
-        $response2->assertJson([
-            'id' => $user->id,
-            'name' => $user->name,
-        ]);
+        $response2->assertStatus(200)
+                 ->assertJson([
+                     'status' => 'success',
+                     'message' => 'User access granted',
+                     'data' => [
+                         'id' => $user->id,
+                         'name' => $user->name,
+                     ],
+                 ]);
     }
 }

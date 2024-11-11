@@ -21,7 +21,7 @@ class PostControllerTest extends TestCase
         parent::setUp();
 
         // Crear roles y usuarios
-        Role::create(['name' => 'User']);
+        Role::create(['name' => 'user']);
         $this->user = User::factory()->create();
         $this->actingAs($this->user, 'sanctum');
     }
@@ -34,21 +34,29 @@ class PostControllerTest extends TestCase
         $response = $this->getJson('/api/posts');
 
         $response->assertStatus(200)
-                 ->assertJsonStructure(['data']);
+        ->assertJsonStructure([
+            'status',
+            'data',
+            'message',
+        ])
+        ->assertJson([
+            'status' => 'success',
+            'message' => 'Posts retrieved successfully',
+        ]);
     }
 
     #[Test]
     public function test_can_create_a_post()
     {
         $postData = [
-            'title' => 'New Post Title',
-            'content' => 'This is the content of the post.',
+            'title' => 'Este es un nuevo post',
+            'content' => 'Este es el contenido del post.',
         ];
 
         $response = $this->postJson('/api/posts', $postData);
 
         $response->assertStatus(201)
-                 ->assertJsonFragment(['title' => 'New Post Title']);
+                 ->assertJsonFragment(['title' => 'Este es un nuevo post']);
 
         $this->assertDatabaseHas('posts', $postData);
     }
@@ -70,14 +78,14 @@ class PostControllerTest extends TestCase
         $post = Post::factory()->create(['user_id' => $this->user->id]);
 
         $updateData = [
-            'title' => 'Updated Title',
-            'content' => 'Updated content.',
+            'title' => 'Este es un post actualizado',
+            'content' => 'Este es el contenido actualizado del post.',
         ];
 
         $response = $this->putJson("/api/posts/{$post->id}", $updateData);
 
         $response->assertStatus(200)
-                 ->assertJsonFragment(['title' => 'Updated Title']);
+                 ->assertJsonFragment(['title' => 'Este es un post actualizado']);
 
         $this->assertDatabaseHas('posts', $updateData);
     }
@@ -89,7 +97,7 @@ class PostControllerTest extends TestCase
         $post = Post::factory()->create(['user_id' => $otherUser->id]);
 
         $response = $this->putJson("/api/posts/{$post->id}", [
-            'title' => 'Malicious Update',
+            'title' => 'Malicioso Update',
             'content' => 'Unauthorized content.',
         ]);
 

@@ -54,7 +54,7 @@ class User extends Authenticatable
         // Asignar el rol 'User' por defecto al crear un usuario
         static::creating(function ($user) {
             if (empty($user->role_id)) {
-                $userRole = Role::where('name', 'User')->first();
+                $userRole = Role::where('name', 'user')->first();
                 $user->role_id = $userRole->id;
             }
         });
