@@ -10,6 +10,8 @@ use App\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Bus;
+use App\Jobs\SendCommentNotification;
 
 class CommentControllerTest extends TestCase
 {
@@ -153,7 +155,7 @@ class CommentControllerTest extends TestCase
        $response = $this->deleteJson("/api/comments/{$comment->id}");
 
        $response->assertStatus(204);
-       $this->assertDatabaseMissing('comments', ['id' => $comment->id]);
+       $this->assertSoftDeleted('comments', ['id' => $comment->id]);
 
     }
 
@@ -168,5 +170,25 @@ class CommentControllerTest extends TestCase
         $response->assertStatus(403); // Forbidden
     }
 
+    #[Test]
+    public function test_comment_dispatches_job()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $post = Post::factory()->create(['user_id' => $user->id]);
+
+        Bus::fake();
+
+        $response = $this->postJson("/api/posts/{$post->id}/comments", [
+            'content' => 'Alto post mono!',
+        ]);
+
+        $response->assertStatus(201);
+
+        Bus::assertDispatched(SendCommentNotification::class, function ($job) use ($post) {
+            return $job->getPost()->id === $post->id;
+        });
+    }
 
 }

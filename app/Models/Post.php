@@ -4,19 +4,37 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Post extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'title',
         'content',
         'user_id',
     ];
+    public static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($post) {
+            if (!$post->isForceDeleting()) {
+                $post->comments()->delete();
+            } else {
+                $post->comments()->forceDelete();
+            }
+        });
+    }
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 }

@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use App\Models\Comment;
 
 
 class PostControllerTest extends TestCase
@@ -112,7 +113,24 @@ class PostControllerTest extends TestCase
         $response = $this->deleteJson("/api/posts/{$post->id}");
 
         $response->assertStatus(204); // No Content
-        $this->assertDatabaseMissing('posts', ['id' => $post->id]);
+        $this->assertSoftDeleted('posts', ['id' => $post->id]);
+    }
+
+    #[Test]
+    public function test_can_soft_delete_post_with_comments()
+    {
+        $post = Post::factory()->create(['user_id' => $this->user->id]);
+        $comments = Comment::factory()->count(3)->create(['post_id' => $post->id]);
+
+        $response = $this->deleteJson("/api/posts/{$post->id}");
+
+        $response->assertStatus(204);
+
+        $this->assertSoftDeleted('posts', ['id' => $post->id]);
+
+        foreach ($comments as $comment) {
+            $this->assertSoftDeleted('comments', ['id' => $comment->id]);
+        }
     }
 
     #[Test]
@@ -124,5 +142,79 @@ class PostControllerTest extends TestCase
         $response = $this->deleteJson("/api/posts/{$post->id}");
 
         $response->assertStatus(403); // Forbidden
+    }
+
+    #[Test]
+    public function test_can_retrieve_paginated_posts_with_default_limit()
+    {
+        Post::factory(15)->create(); // Crear 15 posts
+
+        $response = $this->getJson('/api/posts');
+
+        $response->assertStatus(200)
+                ->assertJsonFragment(['status' => 'success'])
+                ->assertJsonStructure([
+                    'data' => [
+                        'posts' => [
+                            '*' => ['id', 'title', 'content', 'user_id', 'created_at', 'updated_at'],
+                        ],
+                        'links', // Enlaces de paginación
+                        'meta'   // Información de paginación
+                    ],
+                    'message',
+                ]);
+
+        // Verificar que se devuelvan 10 posts de manera predeterminada
+        $this->assertCount(10, $response->json('data.posts'));
+    }
+
+    #[Test]
+    public function test_can_retrieve_paginated_posts_with_custom_limit()
+    {
+        Post::factory(20)->create(); // Crear 20 posts
+
+        // Establecer un límite de 5 posts por página
+        $response = $this->getJson('/api/posts?limit=5');
+
+        $response->assertStatus(200)
+                ->assertJsonFragment(['status' => 'success'])
+                ->assertJsonStructure([
+                    'data' => [
+                        'posts' => [
+                            '*' => ['id', 'title', 'content', 'user_id', 'created_at', 'updated_at'],
+                        ],
+                        'links',
+                        'meta'
+                    ],
+                    'message',
+                ]);
+
+        // Verificar que se devuelvan 5 posts según el límite
+        $this->assertCount(5, $response->json('data.posts'));
+    }
+
+    #[Test]
+    public function test_can_retrieve_paginated_posts_on_second_page()
+    {
+        Post::factory(15)->create(); // Crear 15 posts
+
+        // Solicitar la segunda página con el límite predeterminado de 10 posts por página
+        $response = $this->getJson('/api/posts?page=2');
+
+        $response->assertStatus(200)
+                ->assertJsonFragment(['status' => 'success'])
+                ->assertJsonStructure([
+                    'data' => [
+                        'posts' => [
+                            '*' => ['id', 'title', 'content', 'user_id', 'created_at', 'updated_at'],
+                        ],
+                        'links',
+                        'meta'
+                    ],
+                    'message',
+                ]);
+
+        // Verificar que en la segunda página solo haya 5 posts (15 posts en total con 10 en la primera página)
+        $this->assertCount(5, $response->json('data.posts'));
     }
 }

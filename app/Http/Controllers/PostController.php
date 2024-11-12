@@ -7,32 +7,56 @@ use App\Http\Requests\PostRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Traits\JsonResponseTrait;
+use Illuminate\Http\Request;
+use App\Services\PostService;
 
 class PostController extends Controller
 {
+    protected $postService;
+
     use AuthorizesRequests, JsonResponseTrait; 
+
+    public function __construct(PostService $postService)
+    {
+        $this->postService = $postService;
+    }
 
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Listado de posts con paginación
-        $posts = Post::with('user')->paginate(10);
-        return $this->successResponse($posts, 'Posts retrieved successfully');
+        $limit = $request->query('limit', 10);
+        $page = $request->query('page', 1);
+
+        $posts = $this->postService->getPaginatedPosts($limit, $page);
+
+        return $this->successResponse([
+            'posts' => $posts->items(),
+            'links' => [
+                'first' => $posts->url(1),
+                'last' => $posts->url($posts->lastPage()),
+                'prev' => $posts->previousPageUrl(),
+                'next' => $posts->nextPageUrl(),
+            ],
+            'meta' => [
+                'current_page' => $posts->currentPage(),
+                'from' => $posts->firstItem(),
+                'last_page' => $posts->lastPage(),
+                'path' => $posts->path(),
+                'per_page' => $posts->perPage(),
+                'to' => $posts->lastItem(),
+                'total' => $posts->total(),
+            ]
+        ], 'Posts retrieved successfully');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(PostRequest  $request)
+    public function store(PostRequest $request)
     {
-
-        $post = Post::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'user_id' => Auth::id(),
-        ]);
+        $post = $this->postService->createNewPost($request->validated());
 
         return $this->successResponse($post, 'Post created successfully', 201);
     }
@@ -40,22 +64,23 @@ class PostController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Post $post)
+    public function show($id)
     {
-        return $this->successResponse($post->load('user'), 'Post retrieved successfully');
+        $post = $this->postService->getPostById($id);
+        return $this->successResponse($post, 'Post retrieved successfully');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(PostRequest  $request, Post $post)
+    public function update(PostRequest $request, Post $post)
     {
-        // Usa la policy para autorizar la actualización
+        // Usa la policy para autorizar la actualizacion
         $this->authorize('update', $post);
 
-        $post->update($request->only(['title', 'content']));
+        $updatedPost = $this->postService->updatePost($post, $request->only(['title', 'content']));
 
-        return $this->successResponse($post, 'Post updated successfully');
+        return $this->successResponse($updatedPost, 'Post updated successfully');
     }
 
     /**
@@ -65,8 +90,9 @@ class PostController extends Controller
     {
         // Usa la policy para autorizar la eliminación
         $this->authorize('delete', $post);
-        $post->delete();
 
+        $this->postService->deletePost($post);
+    
         return $this->successResponse(null, 'Post deleted successfully', 204);
     }
 }

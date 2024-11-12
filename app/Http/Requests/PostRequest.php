@@ -17,7 +17,7 @@ class PostRequest extends FormRequest
         // Si es un método PATCH o PUT (actualización), son opcionales
         return [
             'title' => $this->isMethod('post') ? 'required|string|max:255' : 'sometimes|required|string|max:255',
-            'content' => $this->isMethod('post') ? 'required|string' : 'sometimes|required|string',
+            'content' => $this->isMethod('post') ? 'required|string|max:2000' : 'sometimes|required|string|max:2000',
         ];
     }
 }

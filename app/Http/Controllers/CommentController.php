@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 use App\Http\Requests\CommentRequest;
 use App\Traits\JsonResponseTrait;
+use App\Jobs\SendCommentNotification;
+use Illuminate\Support\Facades\Bus;
 
 
 
@@ -28,11 +31,16 @@ class CommentController extends Controller
      */
     public function store(CommentRequest $request, $postId)
     {
+        $post = Post::findOrFail($postId);
+
         $comment = Comment::create([
             'content' => $request->content,
             'post_id' => $postId,
             'user_id' => Auth::id(),
         ]);
+
+        //trigger al job
+        Bus::dispatch(new SendCommentNotification($post, $comment));
 
         return $this->successResponse($comment, 'Comment created successfully', 201);
     }
