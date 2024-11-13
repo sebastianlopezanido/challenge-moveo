@@ -23,7 +23,7 @@ class PostService
 
     public function createNewPost(array $data)
     {
-        $data['user_id'] = Auth::id(); // Agregar el user_id en el servicio
+        $data['user_id'] = Auth::id(); // relación con user
         return $this->postRepository->createPost($data);
     }
 

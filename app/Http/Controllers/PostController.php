@@ -10,6 +10,12 @@ use App\Traits\JsonResponseTrait;
 use Illuminate\Http\Request;
 use App\Services\PostService;
 
+/**
+ * @OA\Tag(
+ *     name="Posts",
+ *     description="API Endpoints for managing posts"
+ * )
+ */
 class PostController extends Controller
 {
     protected $postService;
@@ -21,8 +27,35 @@ class PostController extends Controller
         $this->postService = $postService;
     }
 
-    /**
-     * Display a listing of the resource.
+     /**
+     * @OA\Get(
+     *     path="/posts",
+     *     tags={"Posts"},
+     *     summary="Get paginated list of posts",
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         required=false,
+     *         description="Number of posts per page",
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Current page",
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Posts retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Posts retrieved successfully")
+     *         )
+     *     )
+     * )
      */
     public function index(Request $request)
     {
@@ -52,7 +85,28 @@ class PostController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/posts",
+     *     tags={"Posts"},
+     *     summary="Create a new post",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"title", "content"},
+     *             @OA\Property(property="title", type="string", example="New Post Title"),
+     *             @OA\Property(property="content", type="string", example="This is the content of the post")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Post created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Post created successfully")
+     *         )
+     *     )
+     * )
      */
     public function store(PostRequest $request)
     {
@@ -62,7 +116,27 @@ class PostController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *     path="/posts/{id}",
+     *     tags={"Posts"},
+     *     summary="Get a specific post by ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the post",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Post retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Post retrieved successfully")
+     *         )
+     *     )
+     * )
      */
     public function show($id)
     {
@@ -71,7 +145,35 @@ class PostController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Put(
+     *     path="/posts/{id}",
+     *     tags={"Posts"},
+     *     summary="Update a specific post",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the post",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"title", "content"},
+     *             @OA\Property(property="title", type="string", example="Updated Post Title"),
+     *             @OA\Property(property="content", type="string", example="Updated content of the post.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Post updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Post updated successfully")
+     *         )
+     *     )
+     * )
      */
     public function update(PostRequest $request, Post $post)
     {
@@ -84,7 +186,26 @@ class PostController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *     path="/posts/{id}",
+     *     tags={"Posts"},
+     *     summary="Delete a specific post",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the post",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Post deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Post deleted successfully")
+     *         )
+     *     )
+     * )
      */
     public function destroy(Post $post)
     {

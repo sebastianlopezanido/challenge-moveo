@@ -2,9 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 
-class CommentRequest extends FormRequest
+class CommentRequest extends BaseApiRequest
 {
     /**
      * Get the validation rules that apply to the request.

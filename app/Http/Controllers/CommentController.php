@@ -12,12 +12,38 @@ use App\Jobs\SendCommentNotification;
 use Illuminate\Support\Facades\Bus;
 
 
-
+/**
+ * @OA\Tag(
+ *     name="Comments",
+ *     description="API Endpoints for managing comments"
+ * )
+ */
 class CommentController extends Controller
 {
     use AuthorizesRequests, JsonResponseTrait;
+
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/posts/{postId}/comments",
+     *     tags={"Comments"},
+     *     summary="Get all comments for a specific post",
+     *     @OA\Parameter(
+     *         name="postId",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the post",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Comments retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="message", type="string", example="Comments retrieved successfully")
+     *         )
+     *     )
+     * )
      */
     public function index($postId)
     {
@@ -27,7 +53,34 @@ class CommentController extends Controller
         }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/posts/{postId}/comments",
+     *     tags={"Comments"},
+     *     summary="Create a new comment on a specific post",
+     *     @OA\Parameter(
+     *         name="postId",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the post",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"content"},
+     *             @OA\Property(property="content", type="string", example="This is a comment")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Comment created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Comment created successfully")
+     *         )
+     *     )
+     * )
      */
     public function store(CommentRequest $request, $postId)
     {
@@ -46,7 +99,27 @@ class CommentController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *     path="/comments/{comment}",
+     *     tags={"Comments"},
+     *     summary="Get a specific comment by ID",
+     *     @OA\Parameter(
+     *         name="comment",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the comment",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Comment retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Comment retrieved successfully")
+     *         )
+     *     )
+     * )
      */
     public function show(Comment $comment)
     {
@@ -54,7 +127,34 @@ class CommentController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Put(
+     *     path="/comments/{comment}",
+     *     tags={"Comments"},
+     *     summary="Update a specific comment",
+     *     @OA\Parameter(
+     *         name="comment",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the comment",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"content"},
+     *             @OA\Property(property="content", type="string", example="Updated comment content")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Comment updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Comment updated successfully")
+     *         )
+     *     )
+     * )
      */
     public function update(CommentRequest $request, Comment $comment)
     {
@@ -66,7 +166,26 @@ class CommentController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *     path="/comments/{comment}",
+     *     tags={"Comments"},
+     *     summary="Delete a specific comment",
+     *     @OA\Parameter(
+     *         name="comment",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the comment",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Comment deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Comment deleted successfully")
+     *         )
+     *     )
+     * )
      */
     public function destroy( Comment $comment)
     {
