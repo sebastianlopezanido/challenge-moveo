@@ -7,7 +7,6 @@ use App\Traits\JsonResponseTrait;
 use App\Services\AuthService;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
-use Exception;
 
 /**
  * @OA\Tag(
@@ -65,17 +64,7 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request)
     {
-        try {
-            $token = $this->authService->register($request->validated());
-
-            return $this->successResponse([
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-            ], 'User registered successfully', 201);
-
-        } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 422);
-        }
+        return $this->authService->register($request->validated());
     }
 
     /**
@@ -117,21 +106,7 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request)
     {
-        try {
-            $token = $this->authService->login($request->validated());
-
-            if (!$token) {
-                return $this->errorResponse('The provided credentials are incorrect.', 401);
-            }
-
-            return $this->successResponse([
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-            ], 'Login successful');
-
-        } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 422);
-        }
+        return $this->authService->login($request->validated());
     }
 
         /**
@@ -160,9 +135,6 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $this->authService->logout($request->user());
-
-        return $this->successResponse(null, 'Logged out successfully');
-
+        return $this->authService->logout($request->user());
     }
 }

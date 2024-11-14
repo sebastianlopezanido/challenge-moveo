@@ -48,13 +48,14 @@ Run the development server
 
 **User Management**
 
--   User roles: Defined using the `Role` model and `RoleMiddleware`.
+-   User roles: Defined using the `Role` model and `RoleMiddleware`. (it's important seed database with Roles before using app)
 -   Route protection based on roles: Example route /admin showcases role-based access.
 
 **Post Management**
 
 -   associate post with users: Implemented in `PostService::createNewPost`.
--   Paginated listing of posts: Implemented in `PostController::index`.
+-   Paginated listing of posts: Implemented in `PostService::index`.
+-   Policies and try catch logic Implemented in  `PostController` & `PostService`.
 
 **Comment Management**
 
@@ -82,6 +83,6 @@ Run the development server
 
 -   Unit tests using PHPUnit or PEST: `AdminAccessTest`, `AuthControllerTest`, `CommentControllerTest`, `PostControllerTest`
 
-**Testing**
+**Extra**
 
 -   Documentation: route /api/documentation implements `Swagger` documentation

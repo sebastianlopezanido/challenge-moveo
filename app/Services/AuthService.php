@@ -4,12 +4,14 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Traits\JsonResponseTrait;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
 class AuthService
 {
+    use JsonResponseTrait;
     public function register(array $data)
     {
         try {
@@ -22,11 +24,16 @@ class AuthService
                 'role_id' => $userRole->id,
             ]);
 
-            return $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return $this->successResponse([
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ], 'User registered successfully', 201);
 
         } catch (Exception $e) {
             Log::error('Error in registration: ' . $e->getMessage());
-            throw new Exception("Registration failed. Please try again later.");
+            return $this->errorResponse($e->getMessage(), 422);
         }
     }
 
@@ -36,14 +43,18 @@ class AuthService
             $user = User::where('email', $data['email'])->first();
 
             if (!$user || !Hash::check($data['password'], $user->password)) {
-                return null;
-            }
+                return $this->errorResponse('The provided credentials are incorrect.', 401);            }
 
-            return $user->createToken('auth_token')->plainTextToken;
+            $token =  $user->createToken('auth_token')->plainTextToken;
+
+            return $this->successResponse([
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ], 'Login successful');
 
         } catch (Exception $e) {
             Log::error('Error in login: ' . $e->getMessage());
-            throw new Exception("Login failed. Please try again later.");
+            return $this->errorResponse($e->getMessage(), 422);
         }
     }
 
@@ -51,9 +62,10 @@ class AuthService
     {
         try {
             $user->tokens()->delete();
+            return $this->successResponse(null, 'Logged out successfully');
         } catch (Exception $e) {
             Log::error('Error in logout: ' . $e->getMessage());
-            throw new Exception("Logout failed. Please try again later.");
+            return $this->errorResponse($e->getMessage(), 422);
         }
     }
 }

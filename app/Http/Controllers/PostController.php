@@ -61,27 +61,7 @@ class PostController extends Controller
     {
         $limit = $request->query('limit', 10);
         $page = $request->query('page', 1);
-
-        $posts = $this->postService->getPaginatedPosts($limit, $page);
-
-        return $this->successResponse([
-            'posts' => $posts->items(),
-            'links' => [
-                'first' => $posts->url(1),
-                'last' => $posts->url($posts->lastPage()),
-                'prev' => $posts->previousPageUrl(),
-                'next' => $posts->nextPageUrl(),
-            ],
-            'meta' => [
-                'current_page' => $posts->currentPage(),
-                'from' => $posts->firstItem(),
-                'last_page' => $posts->lastPage(),
-                'path' => $posts->path(),
-                'per_page' => $posts->perPage(),
-                'to' => $posts->lastItem(),
-                'total' => $posts->total(),
-            ]
-        ], 'Posts retrieved successfully');
+        return $this->postService->getPaginatedPosts($limit, $page);
     }
 
     /**
@@ -110,9 +90,8 @@ class PostController extends Controller
      */
     public function store(PostRequest $request)
     {
-        $post = $this->postService->createNewPost($request->validated());
+        return $this->postService->createNewPost($request->validated());
 
-        return $this->successResponse($post, 'Post created successfully', 201);
     }
 
     /**
@@ -140,8 +119,7 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        $post = $this->postService->getPostById($id);
-        return $this->successResponse($post, 'Post retrieved successfully');
+        return $this->postService->getPostById($id);
     }
 
     /**
@@ -181,8 +159,8 @@ class PostController extends Controller
         $this->authorize('update', $post);
 
         $updatedPost = $this->postService->updatePost($post, $request->only(['title', 'content']));
+        return $this->postService->updatePost($post, $request->only(['title', 'content']));
 
-        return $this->successResponse($updatedPost, 'Post updated successfully');
     }
 
     /**
@@ -211,9 +189,7 @@ class PostController extends Controller
     {
         // Usa la policy para autorizar la eliminación
         $this->authorize('delete', $post);
-
-        $this->postService->deletePost($post);
-    
-        return $this->successResponse(null, 'Post deleted successfully', 204);
+        return $this->postService->deletePost($post);
+        
     }
 }
